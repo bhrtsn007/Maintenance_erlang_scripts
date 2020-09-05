@@ -1,0 +1,16 @@
+declare -x PATH_OF_SCRIPT="9000"
+
+declare -x PLATFORM_DB_IP="3001"
+declare -x PASSWORD_OF_PLATFORM_DB="2sMcZ3pdTcp5v"
+
+declare -x TOWER_IP="3000"
+declare -x PASSWORD_OF_TOWER="2sMcZ3pdTcp5v"
+
+declare -x INTERFACE_IP="hygge"
+declare -x PASSWORD_OF_INTERFACE="2sMcZ3pdTcp5v"
+
+declare -x CORE_IP="3001"
+declare -x PASSWORD_OF_CORE="2sMcZ3pdTcp5v"
+
+declare -x PLATFORM_CORE_IP="3000"
+declare -x PASSWORD_OF_PLATFORM_CORE="2sMcZ3pdTcp5v"
