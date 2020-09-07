@@ -35,5 +35,5 @@ main(_) ->
         badrpc ->
             io:format("Error occured in archiving OrderModRecords ,~p~n", [Result1]);
         _ ->
-            io:format(" Something wrong happen ,~p~n", [Result1])
+            io:format(" Something wrong happen in pick_instruction ,~p~n", [Result3])
         end.

@@ -1,28 +1,32 @@
 #!/bin/bash
-source /home/gor/easy_console/VARIABLE
-export > /home/gor/easy_console/VARIABLE
+source /home/gor/easy_console/maintenance/VARIABLE
+export > /home/gor/easy_console/maintenance/VARIABLE
+DIRECTORY=$(date +"%d-%m-%Y")
+echo "####################################################"
+echo "Maintenance Started for $DIRECTORY"
+echo "####################################################"
 #sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "tmux new-session -d -s platform_srms 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py'"
 #sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "tmux new-session -d -s wms_process 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py'"
 #sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "tmux new-session -d -s wms_notification 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py'"
 
 echo "Archiving the data from Core Server"
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/archiving.escript
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/ppstaskrec_archival.escript
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/order_mod_archival.escript
+sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/archiving.escript
+sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/ppstaskrec_archival.escript
+sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/order_mod_archival.escript
 
 
 echo "Checking Data sanity on Core Server"
-data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
+data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
 echo "Data sanity is : " $data_sanity
 echo "Syncing Inventory on Core Server"
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/sync_inventory.escript
+sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/sync_inventory.escript
 
 echo "Starting Tmux session for archiving Postgres on Platform DB"
 #Possibility of having issue with "" which we face in tmux
 
-tmux new-session -d -s platform_srms 'sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py 30"'
-tmux new-session -d -s wms_process 'sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_wms_process.py 30"'
-tmux new-session -d -s wms_notification 'sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_wms_notification.py 30"'
+tmux new-session -d -s platform_srms "sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py 30'"
+tmux new-session -d -s wms_process "sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_wms_process.py 30'"
+tmux new-session -d -s wms_notification "sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_wms_notification.py 30'"
 
 #Need to execute below code when all above three tmux session has been completed
 session_1="platform_srms"
@@ -176,7 +180,7 @@ echo "####################################################"
 echo "Data Sanity and Node check after Butler Server restart"
 echo "####################################################"
 echo ""
-data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
+data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
 echo "Data sanity is : " $data_sanity
 
 
@@ -185,7 +189,7 @@ echo "####################################################"
 echo "Restarting Tomcat"
 echo "####################################################"
 
-sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "echo '$PASSWORD_OF_PLATFORM_CORE' | sudo -S service tomcat restart"
+sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "echo '$PASSWORD_OF_PLATFORM_CORE' | sudo -S systemctl restart tomcat"
 
 # Sleep for 20 minutes
 echo "Going for sleep for 20 minutes"
@@ -205,7 +209,7 @@ echo "####################################################"
 echo "Tomcat Status"
 echo "####################################################"
 
-sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "echo '$PASSWORD_OF_PLATFORM_CORE' | sudo -S service tomcat status | cat"
+sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "echo '$PASSWORD_OF_PLATFORM_CORE' | sudo -S systemctl status tomcat | cat"
 
 echo ""
 echo "####################################################"
@@ -226,3 +230,29 @@ echo "Butler Core Disk Space"
 sshpass -p "$PASSWORD_OF_CORE" ssh -o StrictHostKeyChecking=no -t gor@$CORE_IP "df -h"
 echo "Platform Core Disk Space"
 sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "df -h"
+
+echo ""
+
+echo "####################################################"
+echo "Checking Mnesia size (ETS Table memory and size)"
+echo "####################################################"
+echo ""
+
+sudo /opt/butler_server/bin/butler_server rpcterms ets i > /home/gor/easy_console/maintenance/"$DIRECTORY"_mnesia_table_raw_data.txt
+awk 'BEGIN{print "id,name,type,size,mem,owner"}{print $1","$2","$3","$4","$5","$6}' /home/gor/easy_console/maintenance/"$DIRECTORY"_mnesia_table_raw_data.txt > /home/gor/easy_console/maintenance/"$DIRECTORY"_mnesia_table.csv
+
+echo "Please check" "$DIRECTORY""_mnesia_table.csv in /home/gor/easy_console/maintenance"
+
+
+echo "####################################################"
+echo "Please run script which need to run after butler server restart (if any)"
+echo "####################################################"
+echo ""
+
+echo "Please confirm by typing 'Yes' if not required Type 'No'"
+read ans
+echo "Answer provided: $ans"
+
+echo "####################################################"
+echo "MAINTENANCE COMPLETE"
+echo "####################################################"
