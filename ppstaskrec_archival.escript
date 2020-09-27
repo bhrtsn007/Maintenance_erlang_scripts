@@ -36,5 +36,5 @@ main(_) ->
         badrpc ->
             io:format("Error occured in archiving ppstaskrec ,~p~n", [Result1]);
         _ ->
-            io:format(" Something wrong happen ,~p~n", [Result1])
+            io:format(" Something wrong happen PPS Task record Cleanup  ,~p~n", [Result1])
         end.

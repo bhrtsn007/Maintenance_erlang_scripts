@@ -3,31 +3,29 @@ source /home/gor/easy_console/VARIABLE
 export > /home/gor/easy_console/VARIABLE
 DIRECTORY=$(date +"%d-%m-%Y")
 echo "####################################################"
-echo "Full Maintenance Started at $(date)"
+echo "Maintenance Type B Started at $(date)"
 echo "####################################################"
 #sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "tmux new-session -d -s platform_srms 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py'"
 #sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "tmux new-session -d -s wms_process 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py'"
 #sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "tmux new-session -d -s wms_notification 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py'"
 
-echo "Archiving the data from Core Server"
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/archiving.escript
-echo ""
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/ppstaskrec_archival.escript
-echo ""
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/order_mod_archival.escript
-echo ""
-
-
-echo "Checking Data sanity on Core Server"
-data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
-data_domain=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_validation.escript  | awk -F[\(\)] '{print $2}'`
-echo "Data sanity is : " $data_sanity
-echo "Data domain_validation function is : " $data_domain
-echo "Syncing Inventory on Core Server"
-sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/sync_inventory.escript
+#echo "Archiving the data from Core Server"
+#sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/archiving.escript
+#echo ""
+#sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/ppstaskrec_archival.escript
+#echo ""
+#sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/order_mod_archival.escript
+#echo ""
+#
+#
+#echo "Checking Data sanity on Core Server"
+#data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
+#echo "Data sanity is : " $data_sanity
+#echo ""
+#echo "Syncing Inventory on Core Server"
+#sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/sync_inventory.escript
 
 echo "Starting Tmux session for archiving Postgres on Platform DB"
-#Possibility of having issue with "" which we face in tmux
 
 tmux new-session -d -s platform_srms "sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_platform_srms.py 30'"
 tmux new-session -d -s wms_process "sshpass -p '$PASSWORD_OF_PLATFORM_DB' ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP 'echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S python $PATH_OF_SCRIPT/delete_from_wms_process.py 30'"
@@ -81,21 +79,19 @@ echo "####################################################"
 echo "Platform DB Archiving COMPLETE"
 echo "####################################################"
 
-sleep 1
-
-echo "####################################################"
-echo "Restarting Tower"
-echo "####################################################"
-
-sshpass -p "$PASSWORD_OF_TOWER" ssh -o StrictHostKeyChecking=no -t gor@$TOWER_IP "echo '$PASSWORD_OF_TOWER' | sudo -S docker restart tower"
-
-sleep 5 #sleep for 5 second
-
-echo "####################################################"
-echo "Tower Status"
-echo "####################################################"
-
-sshpass -p "$PASSWORD_OF_TOWER" ssh -o StrictHostKeyChecking=no -t gor@$TOWER_IP "echo '$PASSWORD_OF_TOWER' | sudo -S docker status tower | cat"
+#echo "####################################################"
+#echo "Restarting Tower"
+#echo "####################################################"
+#
+#sshpass -p "$PASSWORD_OF_TOWER" ssh -o StrictHostKeyChecking=no -t gor@$TOWER_IP "echo '$PASSWORD_OF_TOWER' | sudo -S docker restart tower"
+#
+#sleep 1 #sleep for 5 second
+#
+#echo "####################################################"
+#echo "Tower Restart Done, check status above"
+#echo "####################################################"
+#
+#sshpass -p "$PASSWORD_OF_TOWER" ssh -o StrictHostKeyChecking=no -t gor@$TOWER_IP "echo '$PASSWORD_OF_TOWER' | sudo -S docker status tower | cat"
 
 
 echo "####################################################"
@@ -104,14 +100,14 @@ echo "####################################################"
 
 sshpass -p "$PASSWORD_OF_PLATFORM_DB" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "echo '$PASSWORD_OF_PLATFORM_DB' | sudo -S systemctl restart postgresql@9.6-main.service"
 
-echo "Going for sleep for 2 minutes"
-runtime="2 minute"
+echo "Going for sleep for 1 minutes"
+runtime="1 minute"																	##Change to 1 minute
 endtime=$(date -ud "$runtime" +%s)
 
 while [[ $(date -u +%s) -le $endtime ]]
 do
     echo -n "Time Now: `date +%H:%M:%S`"
-    echo -n "  I am still Awake counting 2 minutes"
+    echo -n "  I am still Awake counting 1 minutes"
     echo ""
     sleep 10
 done
@@ -140,7 +136,6 @@ do
     echo ""
     sleep 10
 done
-
 echo "####################################################"
 echo "Butler Interface Status"
 echo "####################################################"
@@ -148,47 +143,46 @@ echo "####################################################"
 sshpass -p "$PASSWORD_OF_INTERFACE" ssh -o StrictHostKeyChecking=no -t gor@$INTERFACE_IP "echo '$PASSWORD_OF_INTERFACE' | sudo -S supervisorctl status all | cat"
 
 
-echo "####################################################"
-echo "Restarting Butler Server"
-echo "####################################################"
-
-if [ "$data_sanity" == "true" ] && [ "$data_domain" == "true" ]; then
-	echo "Data sanity is true, Restarting Butler server is safe"
-	echo "$PASSWORD_OF_CORE" | sudo -S service butler_server stop
-	sleep 0.5
-	echo "$PASSWORD_OF_CORE" | sudo -S service butler_server start
-	
-	#Sleep for atleast 15 min
-	echo "Going for sleep for 15 minutes"
-	runtime="15 minute"
-	endtime=$(date -ud "$runtime" +%s)
-	
-	while [[ $(date -u +%s) -le $endtime ]]
-	do
-	    echo -n "Time Now: `date +%H:%M:%S`"
-	    echo -n "  I am still Awake counting 15 minutes"
-	    echo ""
-	    sleep 10
-	done
-	
-	echo "####################################################"
-	echo "Butler Server Status"
-	echo "####################################################"
-	
-	echo "$PASSWORD_OF_CORE" | sudo -S service butler_server status | cat
-
-else
-	echo "Data sanity is FALSE, SKIPPING Butler Server Restart"
-fi
-
-echo "####################################################"
-echo "Data Sanity and Node check after Butler Server restart"
-echo "####################################################"
 echo ""
-data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
-data_domain=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_validation.escript  | awk -F[\(\)] '{print $2}'`
-echo "Data sanity is : " $data_sanity
-echo "Data domain_validation function is : " $data_domain
+#echo "####################################################"
+#echo "Restarting Butler Server"
+#echo "####################################################"
+#
+#if [ "$data_sanity" == "true" ]; then
+#	echo "Data sanity is true, Restarting Butler server is safe"
+#	echo "$PASSWORD_OF_CORE" | sudo -S service butler_server stop
+#	sleep 0.5
+#	echo "$PASSWORD_OF_CORE" | sudo -S service butler_server start
+#	
+#	#Sleep for atleast 15 min
+#	echo "Going for sleep for 10 minutes"
+#	runtime="10 minute"
+#	endtime=$(date -ud "$runtime" +%s)
+#	
+#	while [[ $(date -u +%s) -le $endtime ]]
+#	do
+#	    echo -n "Time Now: `date +%H:%M:%S`"
+#	    echo -n "  I am still Awake counting 10 minutes"
+#	    echo ""
+#	    sleep 10
+#	done
+#	
+#	echo "####################################################"
+#	echo "Butler Server Status"
+#	echo "####################################################"
+#	
+#	echo "$PASSWORD_OF_CORE" | sudo -S service butler_server status | cat
+#
+#else
+#	echo "Data sanity is FALSE, SKIPPING Butler Server Restart"
+#fi
+#
+#echo "####################################################"
+#echo "Data Sanity and Node check after Butler Server restart"
+#echo "####################################################"
+#echo ""
+#data_sanity=`sudo /opt/butler_server/erts-9.3.3.6/bin/escript /home/gor/easy_console/maintenance/data_sanity.escript  | awk -F[\(\)] '{print $2}'`
+#echo "Data sanity is : " $data_sanity
 
 
 
@@ -199,14 +193,14 @@ echo "####################################################"
 sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "echo '$PASSWORD_OF_PLATFORM_CORE' | sudo -S systemctl restart tomcat"
 
 # Sleep for 20 minutes
-echo "Going for sleep for 20 minutes"
-runtime="20 minute"
+echo "Going for sleep for 15 minutes"
+runtime="15 minute"																		##Change to 15 minutes
 endtime=$(date -ud "$runtime" +%s)
 
 while [[ $(date -u +%s) -le $endtime ]]
 do
     echo -n "Time Now: `date +%H:%M:%S`"
-    echo -n "  I am still Awake counting 20 minutes"
+    echo -n "  I am still Awake counting 15 minutes"
     echo ""
     sleep 10
 done
@@ -218,44 +212,49 @@ echo "####################################################"
 
 sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "echo '$PASSWORD_OF_PLATFORM_CORE' | sudo -S systemctl status tomcat | cat"
 
-echo ""
-echo "####################################################"
-echo "All Server Restart Completed"
-echo "####################################################"
-echo ""
+echo "Check Eureka Service Page for all Microservices"
+#echo ""
+#echo "####################################################"
+#echo "Butler Server Restart Completed"
+#echo "####################################################"
+#echo ""
+#
+#echo "####################################################"
+#echo "Checking Disk Space for all VM"
+#echo "####################################################"
+#echo ""
+#
+#echo "Interface Disk Space"
+#sshpass -p "$PASSWORD_OF_INTERFACE" ssh -o StrictHostKeyChecking=no -t gor@$INTERFACE_IP "df -h"
+#echo "Platform DB Disk Space"
+#sshpass -p "$PASSWORD_OF_PLATFORM_DB" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "df -h"
+#echo "Butler Core Disk Space"
+#sshpass -p "$PASSWORD_OF_CORE" ssh -o StrictHostKeyChecking=no -t gor@$CORE_IP "df -h"
+#echo "Platform Core Disk Space"
+#sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "df -h"
+#
+#echo ""
+#
+#echo "####################################################"
+#echo "Checking Mnesia size (ETS Table memory and size)"
+#echo "####################################################"
+#echo ""
+#
+#sudo /opt/butler_server/bin/butler_server rpcterms ets i > /home/gor/easy_console/maintenance/"$DIRECTORY"_mnesia_table_raw_data.txt
+#awk 'BEGIN{print "id,name,type,size,mem,owner"}{print $1","$2","$3","$4","$5","$6}' /home/gor/easy_console/maintenance/"$DIRECTORY"_mnesia_table_raw_data.txt > /home/gor/easy_console/maintenance/"$DIRECTORY"_mnesia_table.csv
+#
+#echo "Please check" "$DIRECTORY""_mnesia_table.csv in /home/gor/easy_console/maintenance"
+#
+#
+#echo "####################################################"
+#echo "Please run script which need to run after butler server restart (if any)"
+#echo "####################################################"
+#echo ""
+#
+#echo "Please confirm by typing 'Yes' if not required Type 'No'"
+#read ans
+#echo "Answer provided: $ans"
 
 echo "####################################################"
-echo "Checking Disk Space for all VM"
-echo "####################################################"
-echo ""
-
-echo "Interface Disk Space"
-sshpass -p "$PASSWORD_OF_INTERFACE" ssh -o StrictHostKeyChecking=no -t gor@$INTERFACE_IP "df -h"
-echo "Platform DB Disk Space"
-sshpass -p "$PASSWORD_OF_PLATFORM_DB" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_DB_IP "df -h"
-echo "Butler Core Disk Space"
-sshpass -p "$PASSWORD_OF_CORE" ssh -o StrictHostKeyChecking=no -t gor@$CORE_IP "df -h"
-echo "Platform Core Disk Space"
-sshpass -p "$PASSWORD_OF_PLATFORM_CORE" ssh -o StrictHostKeyChecking=no -t gor@$PLATFORM_CORE_IP "df -h"
-
-echo ""
-
-echo "####################################################"
-echo "Checking Mnesia size (ETS Table memory and size)"
-echo "####################################################"
-echo ""
-
-sudo /opt/butler_server/bin/butler_server rpcterms ets i > /home/gor/easy_console/"$DIRECTORY"_mnesia_table_raw_data.txt
-awk 'BEGIN{print "id,name,type,size,mem,owner"}{print $1","$2","$3","$4","$5","$6}' /home/gor/easy_console/"$DIRECTORY"_mnesia_table_raw_data.txt > /home/gor/easy_console/"$DIRECTORY"_mnesia_table.csv
-
-echo "Please check" "$DIRECTORY""_mnesia_table.csv in /home/gor/easy_console"
-
-
-echo "####################################################"
-echo "Please run script which need to run after butler server restart (if any)"
-echo "####################################################"
-echo ""
-
-echo "####################################################"
-echo "Full MAINTENANCE COMPLETE at $(date)"
+echo "MAINTENANCE Type 2 COMPLETE at $(date)"
 echo "####################################################"
