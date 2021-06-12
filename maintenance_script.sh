@@ -270,6 +270,10 @@ awk 'BEGIN{print "id,name,type,size,mem,owner"}{print $1","$2","$3","$4","$5","$
 
 echo "Please check" "$DIRECTORY""_mnesia_table.csv in /home/gor/easy_console"
 
+echo "Archiving Butler interface on Interface DB"
+sshpass -p "$PASSWORD_OF_INTERFACE" ssh -o StrictHostKeyChecking=no -t gor@$INTERFACE_IP "sudo su -c '/opt/butler_interface/run_archival.sh'"
+
+
 
 echo "####################################################"
 echo "Please run script which need to run after butler server restart (if any)"
